@@ -1,8 +1,12 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { ROLE } from 'src/enums/role.enum';
 
-export interface TokenPayload extends JwtPayload {
+interface IUserBase {
   userId: string;
   userName: string;
   role: keyof typeof ROLE;
 }
+
+export interface TokenPayload extends JwtPayload, IUserBase {}
+
+export interface IUserRequest extends IUserBase {}

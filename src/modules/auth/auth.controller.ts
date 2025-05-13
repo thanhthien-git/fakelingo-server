@@ -10,13 +10,12 @@ export class AuthController {
   @ApiBody({ type: LoginDto })
   @Post('login')
   async login(@Body() dto: LoginDto) {
-    return `login`;
+    return this.authService.login(dto);
   }
 
   @ApiBody({ type: RegisterDto })
   @Post('register')
   async register(@Body() dto: RegisterDto) {
-    return `register`;
+    return this.authService.register(dto);
   }
-  Ơ;
 }

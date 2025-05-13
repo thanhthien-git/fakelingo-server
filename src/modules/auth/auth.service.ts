@@ -1,28 +1,28 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { IUser, User, UserDocument } from 'src/schemas/user-schema';
+import { IUser, User } from 'src/schemas/user-schema';
 import { RegisterDto } from './dtos/register.dto';
-import { TokenPayload } from 'src/interfaces/jwt-payload.interface';
 import * as bcrypt from 'bcrypt';
 import { ROLE } from 'src/enums/role.enum';
 import { TokenService } from '../token/token/token.service';
 import { CreateTokenDto } from '../token/token/dto/generate-token.dto';
 import { LoginDto } from './dtos/login.dto';
+import { CustomLogger } from '../logger/logger.service';
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
+  private readonly logger = new CustomLogger(AuthService.name);
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private tokenService: TokenService,
   ) {}
 
-  async hashedPassword(password: string) {
+  private async hashedPassword(password: string) {
     return await bcrypt.hash(password, 10);
   }
 
-  async comparePassword(password: string, hashedPassword: string) {
+  private async comparePassword(password: string, hashedPassword: string) {
     return await bcrypt.compare(password, hashedPassword);
   }
 
@@ -39,7 +39,6 @@ export class AuthService {
         userName: userName,
         password: hashed,
         role: ROLE.USER,
-        currentLevel: '',
         createAt: new Date(),
       };
 
@@ -51,7 +50,7 @@ export class AuthService {
       };
       return await this.tokenService.generateToken(tokenDto);
     } catch (err) {
-      this.logger.error(err);
+      this.logger.error(err.message);
       throw new BadRequestException(err);
     }
   }
@@ -79,8 +78,8 @@ export class AuthService {
 
       return await this.tokenService.generateToken(payload);
     } catch (err) {
-      this.logger.error(err);
-      throw new BadRequestException(err);
+      this.logger.error(err.message);
+      throw new BadRequestException({ message: err });
     }
   }
 }

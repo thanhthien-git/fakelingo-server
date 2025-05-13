@@ -2,11 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { CustomLogger } from './modules/logger/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useLogger(['debug', 'error', 'log', 'warn']);
+  app.useLogger(new CustomLogger("MAIN"));
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
 
