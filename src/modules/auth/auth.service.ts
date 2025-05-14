@@ -7,8 +7,8 @@ import * as bcrypt from 'bcrypt';
 import { ROLE } from 'src/enums/role.enum';
 import { LoginDto } from './dtos/login.dto';
 import { CustomLogger } from 'src/modules/logger/logger.service';
-import { TokenService } from 'src/modules/token/token.service';
-import { CreateTokenDto } from 'src/modules/token/dto/generate-token.dto';
+import { TokenService } from '../token/token.service';
+import { CreateTokenDto } from '../token/dto/generate-token.dto';
 
 @Injectable()
 export class AuthService {
