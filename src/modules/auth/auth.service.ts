@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { IUser, User } from 'src/schemas/user-schema';
+import { IUser, User } from '@/schemas/user-schema';
 import { RegisterDto } from './dtos/register.dto';
 import * as bcrypt from 'bcrypt';
-import { ROLE } from 'src/enums/role.enum';
+import { ROLE } from '@/enums/role.enum';
 import { LoginDto } from './dtos/login.dto';
-import { CustomLogger } from 'src/modules/logger/logger.service';
-import { TokenService } from 'src/modules/token/token.service';
-import { CreateTokenDto } from 'src/modules/token/dto/generate-token.dto';
+import { CustomLogger } from '@/modules/logger/logger.service';
+import { TokenService } from '@/modules/token/token.service';
+import { CreateTokenDto } from '@/modules/token/dto/generate-token.dto';
 
 @Injectable()
 export class AuthService {
