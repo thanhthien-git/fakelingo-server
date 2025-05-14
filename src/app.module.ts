@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
-import { TokenModule } from './modules/token/token/token.module';
+import { TokenModule } from './modules/token/token.module';
 import { DatabaseModule } from './modules/database/database/database.module';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 import { CustomLogger } from './modules/logger/logger.service';
