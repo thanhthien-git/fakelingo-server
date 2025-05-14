@@ -1,24 +1,38 @@
-# Stage 1: Build application
+# Build stage
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+COPY yarn.lock ./
 
+# Install dependencies
+RUN yarn install --frozen-lockfile
+
+# Copy source code
 COPY . .
-RUN npm run build
 
-# Stage 2: Create production image
+# Build the application
+RUN yarn build
+
+# Production stage
 FROM node:18-alpine
 
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
-RUN npm install --legacy-peer-deps --only=production
+COPY yarn.lock ./
 
+# Install production dependencies only
+RUN yarn install --production --frozen-lockfile
+
+# Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
-#FOR LOCAL RUN ONLY
-# COPY .env .env
 
-CMD ["node", "dist/main.js"]
+# Expose the port
+EXPOSE 8000
+
+# Start the application
+CMD ["node", "dist/main"]
