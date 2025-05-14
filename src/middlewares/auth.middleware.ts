@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
-import { TokenService } from '@/modules/token/token.service';
+import { TokenService } from '../modules/token/token.service';
 
 @Injectable()
 export class JwtMiddleware implements NestMiddleware {
