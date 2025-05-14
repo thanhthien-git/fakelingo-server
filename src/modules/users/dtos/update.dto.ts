@@ -1,4 +1,4 @@
-import { IProfile } from '../../../schemas/user-schema';
+import { IProfile } from 'src/schemas/user-schema';
 
 type UpdateProfile = Omit<IProfile, 'preferences'>;
 

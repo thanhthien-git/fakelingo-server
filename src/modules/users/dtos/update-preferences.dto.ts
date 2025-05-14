@@ -1,4 +1,4 @@
-import { IUserPreferences } from '../../../schemas/user-schema';
+import { IUserPreferences } from 'src/schemas/user-schema';
 
 export class UpdatePreferencesDto {
   userId?: string;

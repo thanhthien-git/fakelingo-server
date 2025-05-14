@@ -8,8 +8,8 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { User } from '../../decorators/user-request.decorator';
-import { IUserRequest } from '../../interfaces/jwt-payload.interface';
+import { User } from 'src/decorators/user-request.decorator';
+import { IUserRequest } from 'src/interfaces/jwt-payload.interface';
 import { UpdateProfileDto } from './dtos/update.dto';
 import { UserService } from './user.service';
 import { FilesInterceptor } from '@nestjs/platform-express';

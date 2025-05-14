@@ -1,5 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
-import { ROLE } from '../enums/role.enum';
+import { ROLE } from 'src/enums/role.enum';
 
 interface IUserBase {
   userId: string;

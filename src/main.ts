@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { CustomLogger } from './modules/logger/logger.service';
+import { CustomLogger } from 'src/modules/logger/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
