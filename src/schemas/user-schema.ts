@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { ROLE } from 'src/enums/role.enum';
+import { ROLE } from '../enums/role.enum';
 
 class Location {
   @Prop([Number])
@@ -86,14 +86,14 @@ export interface IUserPreferences {
 }
 
 export interface IProfile {
-  name: string;
-  age: number;
-  gender: string;
-  bio: string;
-  photos: string[];
-  location: ILocation;
-  interests: string[];
-  preferences: IUserPreferences;
+  name?: string;
+  age?: number;
+  gender?: string;
+  bio?: string;
+  photos?: string[];
+  location?: ILocation;
+  interests?: string[];
+  preferences?: IUserPreferences;
 }
 
 export interface IUser {
@@ -106,3 +106,5 @@ export interface IUser {
   lastActive?: Date;
   profile?: IProfile;
 }
+
+export type IUserResponse = Omit<IUser, 'password | role '>;

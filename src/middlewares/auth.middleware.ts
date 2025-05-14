@@ -1,5 +1,5 @@
 import { NestMiddleware, UnauthorizedException } from '@nestjs/common';
-import { TokenService } from 'src/modules/token/token/token.service';
+import { TokenService } from '../modules/token/token.service';
 
 export class JwtMiddleware implements NestMiddleware {
   constructor(private readonly tokenService: TokenService) {}
