@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { IUserResponse, User } from 'src/schemas/user-schema';
-import { CustomLogger } from 'src/modules/logger/logger.service';
-import { ERROR } from 'src/constants/error';
-import { CachingService } from 'src/modules/caching/caching.service';
+import { IUserResponse, User } from '../../schemas/user-schema';
+import { CustomLogger } from '../logger/logger.service';
+import { ERROR } from '../../constants/error';
+import { CachingService } from '../caching/caching.service';
 import { UpdateProfileDto } from './dtos/update.dto';
 import { UpdatePreferencesDto } from './dtos/update-preferences.dto';
 import axios from 'axios';

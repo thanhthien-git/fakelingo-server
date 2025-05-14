@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from 'src/app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { CustomLogger } from 'src/modules/logger/logger.service';
+import { CustomLogger } from './modules/logger/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,19 +11,18 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
 
-  const port = process.env.PORT || 8000;
-
   const config = new DocumentBuilder()
-    .setTitle('FakeLingo E-learning API')
+    .setTitle('FakeLingo API')
     .setDescription('The FakeLingo API description')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/swagger', app, documentFactory);
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
-  const logger = new Logger('MAIN');
-  await app.listen(port, () => {
-    logger.log(`server is running on port: ${port}`);
+  const logger = new CustomLogger('MAIN');
+  await app.listen(process.env.PORT || 8000, () => {
+    logger.log(`server is running on port: ${process.env.PORT || 8000}`);
   });
 }
 bootstrap();

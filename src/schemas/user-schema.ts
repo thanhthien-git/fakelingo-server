@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { ROLE } from 'src/enums/role.enum';
+import { ROLE } from '../enums/role.enum';
 
 class Location {
   @Prop([Number])
