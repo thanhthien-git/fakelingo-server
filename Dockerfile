@@ -22,4 +22,4 @@ COPY --from=builder /app/dist ./dist
 # FOR LOCAL RUN ONLY
 # COPY .env .env
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "-r", "tsconfig-paths/register", "dist/main.js"]
