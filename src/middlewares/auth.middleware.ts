@@ -1,29 +1,26 @@
 import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
-import { TokenService } from '../modules/token/token.service';
+import { TokenService } from 'src/modules/token/token.service';
 
+@Injectable()
 export class JwtMiddleware implements NestMiddleware {
-  constructor(private readonly tokenService: TokenService) {}
+  constructor(private tokenService: TokenService) {}
 
-  async use(req: any, res: any, next: (error?: any) => void) {
-    const authorizationHeader = this.getAuthorizationHeader(req);
-    if (!authorizationHeader) {
-      throw new UnauthorizedException('Token is not valid');
+  async use(req: any, res: any, next: () => void) {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) {
+        throw new UnauthorizedException('No token provided');
+      }
+
+      const payload = await this.tokenService.verifyToken(token);
+      if (!payload) {
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      req.user = payload;
+      next();
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
     }
-    const token = authorizationHeader.startsWith('Bearer ')
-      ? authorizationHeader.slice(7)
-      : authorizationHeader;
-
-    const decoded = await this.tokenService.verifyToken(token);
-    if (!decoded) {
-      throw new UnauthorizedException('Token is not valid');
-    }
-
-    const { userName, userId, role } = decoded;
-    req.auth = { userName, userId, role };
-    next();
-  }
-
-  private getAuthorizationHeader(req: Request): string | null {
-    return req.headers['authorization'] || req.headers['Authorization'] || null;
   }
 }
