@@ -107,4 +107,6 @@ export interface IUser {
   profile?: IProfile;
 }
 
+export type IFeedUser = Omit<IProfile, 'name' | 'bio' | 'photos' >
+
 export type IUserResponse = Omit<IUser, 'password | role '>;

@@ -7,8 +7,10 @@ import { DatabaseModule } from './modules/database/database/database.module';
 import { CustomLogger } from './modules/logger/logger.service';
 import { JwtMiddleware } from './middlewares/auth.middleware';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
+import { FeedModule } from './modules/feeds/feeds.modules';
+import { UserModule } from './modules/users/user.module';
 
-const PROTECTED_ROUTES = ['user'];
+const PROTECTED_ROUTES = ['user', 'feeds'];
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -16,6 +18,8 @@ const PROTECTED_ROUTES = ['user'];
     TokenModule,
     DatabaseModule,
     CachingModule,
+    UserModule,
+    FeedModule,
   ],
   controllers: [],
   providers: [CustomLogger],

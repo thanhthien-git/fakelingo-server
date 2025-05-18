@@ -9,6 +9,10 @@ export class CachingService {
     private readonly redisClient: RedisClientType,
   ) {}
 
+  getClient() {
+    return this.redisClient;
+  }
+
   async get<T>(key: string): Promise<T | null> {
     const data = await this.redisClient.get(key);
     return data ? (data as T) : null;

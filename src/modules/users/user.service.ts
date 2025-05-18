@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { IUserResponse, User } from '../../schemas/user-schema';
@@ -9,6 +13,7 @@ import { UpdateProfileDto } from './dtos/update.dto';
 import { UpdatePreferencesDto } from './dtos/update-preferences.dto';
 import axios from 'axios';
 import FormData from 'form-data';
+import { FeedNewUserDto } from '../feeds/dtos/get-list.dto';
 
 @Injectable()
 export class UserService {
@@ -124,6 +129,55 @@ export class UserService {
       throw new BadRequestException({
         message: 'Cannot delete this account    ',
       });
+    }
+  }
+
+  async findUserByCondition(dto: FeedNewUserDto, limit = 10, userId: string) {
+    try {
+      const { condition } = dto;
+      const { location, preferences } = condition;
+      const query: any = {
+        _id: { $ne: new Types.ObjectId(userId) },
+      };
+
+      const orConditions = [];
+
+      if (preferences.gender) {
+        orConditions.push({ 'profile.gender': preferences.gender });
+      }
+
+      if (preferences.ageRange) {
+        orConditions.push({
+          'profile.age': {
+            $gte: preferences.ageRange.min,
+            $lte: preferences.ageRange.max,
+          },
+        });
+      }
+
+      if (orConditions.length > 0) {
+        query.$or = orConditions;
+      }
+
+      if (location && location.coordinates && preferences.max_distance) {
+        query['profile.location'] = {
+          $near: {
+            $geometry: {
+              type: 'Point',
+              coordinates: location.coordinates,
+            },
+            $maxDistance: preferences.max_distance * 1000,
+          },
+        };
+      }
+
+      const users = await this.userModel.find(query).limit(limit).exec();
+      const ids = users.map((user) => user._id);
+      return ids;
+    } catch (err) {
+      this.logger.error(`error when getting user by condition: ${err.message}`);
+      console.log('Error stack:', err.stack);
+      throw new BadRequestException(err);
     }
   }
 }
