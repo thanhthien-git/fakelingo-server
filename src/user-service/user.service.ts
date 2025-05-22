@@ -6,14 +6,14 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { IUserResponse, User } from '../../schemas/user-schema';
-import { CustomLogger } from '../logger/logger.service';
+import { CustomLogger } from '../../logger-service/logger.service';
 import { ERROR } from '../../constants/error';
-import { CachingService } from '../caching/caching.service';
+import { CachingService } from '../../caching-service/src/caching.service';
 import { UpdateProfileDto } from './dtos/update.dto';
 import { UpdatePreferencesDto } from './dtos/update-preferences.dto';
 import axios from 'axios';
 import FormData from 'form-data';
-import { FeedNewUserDto } from '../feeds/dtos/get-list.dto';
+import { FeedNewUserDto } from '../../feed-service/dtos/get-list.dto';
 
 @Injectable()
 export class UserService {
@@ -39,6 +39,39 @@ export class UserService {
     } catch (err) {
       this.logger.error(err);
       throw new BadRequestException({ message: ERROR.FAILED_QUERY });
+    }
+  }
+
+  async getUserByIds(userIds: string[]): Promise<IUserResponse[]> {
+    try {
+      let users: IUserResponse[] = [];
+      const objIds = userIds.map((userId: string) => {
+        new Types.ObjectId(userId);
+      });
+
+      users = await this.userModel.find({
+        _id: {
+          $in: objIds,
+        },
+      });
+
+      //non blocking
+      setImmediate(() => {
+        users.forEach((user) => {
+          this.cachingService
+            .set(this.cacheKey(String(user._id)), user)
+            .catch((err) => {
+              this.logger.warn(
+                `Redis cache set failed for user ${user._id}: ${err}`,
+              );
+            });
+        });
+      });
+
+      return users;
+    } catch (err) {
+      this.logger.error(`error when get users by ids: ${err}`);
+      throw new BadRequestException(err);
     }
   }
 
@@ -132,7 +165,11 @@ export class UserService {
     }
   }
 
-  async findUserByCondition(dto: FeedNewUserDto, limit = 10, userId: string) {
+  async findUserByCondition(
+    dto: FeedNewUserDto,
+    limit = 10,
+    userId: string,
+  ): Promise<IUserResponse[]> {
     try {
       const { condition } = dto;
       const { location, preferences } = condition;
@@ -171,9 +208,12 @@ export class UserService {
         };
       }
 
-      const users = await this.userModel.find(query).limit(limit).exec();
-      const ids = users.map((user) => user._id);
-      return ids;
+      const users: IUserResponse[] = await this.userModel
+        .find(query)
+        .limit(limit)
+        .exec();
+
+      return users;
     } catch (err) {
       this.logger.error(`error when getting user by condition: ${err.message}`);
       console.log('Error stack:', err.stack);

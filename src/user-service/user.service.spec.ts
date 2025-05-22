@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../../schemas/user-schema';
 import { UserService } from './user.service';
-import { CachingService } from '../caching/caching.service';
+import { CachingService } from '../../caching-service/src/caching.service';
 
 describe('UserService', () => {
   let service: UserService;
@@ -19,14 +19,14 @@ describe('UserService', () => {
       ],
       providers: [
         UserService,
-        { provide: CachingService, useValue: mockCachingService }, // <-- mock này bắt buộc phải có
+        { provide: CachingService, useValue: mockCachingService },
       ],
     }).compile();
 
     service = module.get<UserService>(UserService);
   });
 
-  it('🧪 test function call only', async () => {
+  it('test function call only', async () => {
     const dto = {
       condition: {
         preferences: {

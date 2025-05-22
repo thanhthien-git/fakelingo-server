@@ -2,15 +2,15 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { IUserResponse, User } from 'src/schemas/user-schema';
 import { FeedNewUserDto } from './dtos/get-list.dto';
-import { CustomLogger } from '../logger/logger.service';
-import { CachingService } from '../caching/caching.service';
+import { CustomLogger } from '../logger-service/logger.service';
+import { CachingService } from '../caching-service/src/caching.service';
 import { RedisClientType } from 'redis';
-import { UserService } from '../users/user.service';
+import { UserService } from 'src/user-service/user.service';
 
 @Injectable()
 export class FeedService {
   private readonly logger = new CustomLogger(FeedService.name);
-  private readonly cacheKey = (key: string) => `feeds:${key}`;
+  private readonly cacheKey = (key: string) => `feeds:userId:${key}`;
   private readonly FEED_LIMIT = 10;
   private cache: RedisClientType;
   constructor(
@@ -32,13 +32,16 @@ export class FeedService {
     }
   }
 
-
   async getNextFeed(
     userId: string,
     feedDto: FeedNewUserDto,
   ): Promise<IUserResponse[]> {
     try {
+      const key = this.cacheKey(userId);
       let users: IUserResponse[] = [];
+
+      users = await this.userService.findUserByCondition(feedDto, 10, userId);
+
       return users;
     } catch {
       this.logger.error('Error when get user feeding');
