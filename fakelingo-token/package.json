@@ -1,10 +1,15 @@
 {
   "name": "fakelingo-token",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1",
+  "description": "Token service for Fakelingo",
   "author": "",
   "private": false,
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
