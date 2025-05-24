@@ -2,9 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from 'src/dtos/register.dto';
 import { LoginDto } from 'src/dtos/login.dto';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class AuthService {
+  private readonly USER_SERVICE_ENDPOINT = process.env.USER_SERVICE;
+
+  constructor(private readonly httpService: HttpService) {}
+
   private async comparePassword(password: string, hashedPassword: string) {
     return await bcrypt.compare(password, hashedPassword);
   }
@@ -15,7 +20,10 @@ export class AuthService {
       if (password !== rePassword) {
         throw new BadRequestException('Passwords do not match');
       }
-      return '';
+      const response = await this.httpService
+        .post(`${this.USER_SERVICE_ENDPOINT}/user/create`, dto)
+        .toPromise();
+      return response.data;
     } catch (err) {
       throw new BadRequestException(err);
     }

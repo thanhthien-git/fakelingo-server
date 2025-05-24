@@ -2,18 +2,22 @@ import { InjectModel } from '@nestjs/mongoose';
 import { IUser, IUserResponse, User } from './schema/user-schema';
 import { Model, Types } from 'mongoose';
 import { RegisterDto } from './dtos/register.dto';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ROLE } from 'src/enums/role.enum';
 import { CreateTokenDto } from './dtos/generate-token.dto';
 import { TokenService } from '../token/token.service';
-import { CacheService } from '@fakelingo/cache-lib';
 import { UpdateProfileDto } from './dtos/update.dto';
 import { UpdatePreferencesDto } from './dtos/update-preferences.dto';
 import { ERROR } from 'src/constants/message';
 import axios from 'axios';
 import { FeedNewUserDto } from './dtos/feed-new-user.dto';
 import * as FormData from 'form-data';
+import * as bcrypt from 'bcrypt';
+import { CacheService } from '@fakelingo/cache-lib';
 
 @Injectable()
 export class UserService {
@@ -51,7 +55,7 @@ export class UserService {
       };
       return await this.tokenService.generateToken(tokenDto);
     } catch (err) {
-      throw new BadRequestException(err);
+      throw new InternalServerErrorException(err);
     }
   }
 
@@ -161,7 +165,7 @@ export class UserService {
           contentType: photo.mimetype,
         });
       });
-      
+
       const urls = await axios.post(this.storage, formData, {
         headers: {
           ...formData.getHeaders(),

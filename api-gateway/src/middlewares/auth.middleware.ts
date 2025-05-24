@@ -1,5 +1,10 @@
-import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
-import { TokenService } from '../modules/token/token.service';
+import {
+  Injectable,
+  NestMiddleware,
+  UnauthorizedException,
+} from '@nestjs/common';
+
+import { TokenService } from 'fakelingo-token';
 
 @Injectable()
 export class JwtMiddleware implements NestMiddleware {

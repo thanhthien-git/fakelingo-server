@@ -4,9 +4,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const port = process.env.PORT ?? 8082;
-
   const app = await NestFactory.create(AppModule);
-
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {

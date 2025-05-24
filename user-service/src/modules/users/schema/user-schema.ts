@@ -49,10 +49,10 @@ export class User {
   @Prop()
   _id?: Types.ObjectId;
 
-  @Prop()
+  @Prop({ unique: true })
   email: string;
 
-  @Prop()
+  @Prop({ unique: true })
   userName: string;
 
   @Prop()

@@ -4,9 +4,20 @@ export class CacheService {
   private client: RedisClientType;
   private readonly TTL = 300;
 
-  constructor(redisUrl: string) {
+ constructor(redisUrl: string) {
     this.client = createClient({ url: redisUrl });
-    this.client.connect().catch(console.error);
+
+    this.client.on('connect', () => {
+      console.log('Redis connected successfully!');
+    });
+
+    this.client.on('error', (err) => {
+      console.error('Redis connection failed:', err.message);
+    });
+
+    this.client.connect().catch((err) => {
+      console.error('Redis connection error on initial connect:', err.message);
+    });
   }
 
   getClient() {

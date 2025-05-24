@@ -15,7 +15,6 @@ import { CacheModule } from '@fakelingo/cache-lib';
       },
     ]),
     TokenModule,
-    CacheModule.forRoot(process.env.REDIS_URL),
   ],
   controllers: [UserController],
   providers: [UserService],
