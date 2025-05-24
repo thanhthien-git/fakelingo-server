@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { IUserResponse, User } from 'src/schemas/user-schema';
+import { IUserResponse, User } from 'src/user-service/schema/user-schema';
 import { FeedNewUserDto } from './dtos/get-list.dto';
 import { CustomLogger } from '../logger-service/logger.service';
 import { CachingService } from '../caching-service/src/caching.service';

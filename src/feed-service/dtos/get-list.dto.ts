@@ -1,4 +1,4 @@
-import { IFeedUser } from 'src/schemas/user-schema';
+import { IFeedUser } from 'src/user-service/schema/user-schema';
 
 export class FeedNewUserDto {
   condition: IFeedUser;

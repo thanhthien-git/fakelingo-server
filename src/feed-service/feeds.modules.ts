@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from 'src/schemas/user-schema';
+import { User, UserSchema } from 'src/user-service/schema/user-schema';
 import { CachingModule } from '../caching-service/src/caching.module';
 import { FeedController } from './feeds.controller';
 import { Swipe, SwipeSchema } from 'src/schemas/swipe-schema';
-import { UserModule } from '../modules/users/user.module';
+import { UserModule } from 'src/user-service/user.module';
 
 @Module({
   imports: [
