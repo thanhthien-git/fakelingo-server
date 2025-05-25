@@ -5,8 +5,9 @@ import { ITokenPayload } from './dto/generate-token.dto';
 
 @Injectable()
 export class TokenService {
-  constructor(private jwtService: JwtService) {}
-
+  constructor(private jwtService: JwtService) {
+    console.log('JwtService in TokenService:', this.jwtService);
+  }
   async verifyToken(token: string): Promise<TokenPayload | null> {
     if (!token) return null;
     const result = await this.jwtService.verify(token);
@@ -15,8 +16,7 @@ export class TokenService {
 
   async generateToken(dto: ITokenPayload): Promise<string> {
     const payload: TokenPayload = { ...dto };
-
-    return this.jwtService.signAsync(payload, {
+    return this.jwtService.sign(payload, {
       expiresIn: '100h',
     });
   }

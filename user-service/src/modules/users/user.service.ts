@@ -6,6 +6,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ROLE } from 'src/enums/role.enum';
 import { CreateTokenDto } from './dtos/generate-token.dto';
@@ -18,6 +19,7 @@ import { FeedNewUserDto } from './dtos/feed-new-user.dto';
 import * as FormData from 'form-data';
 import * as bcrypt from 'bcrypt';
 import { CacheService } from '@fakelingo/cache-lib';
+import { LoginDto } from './dtos/login.dto';
 
 @Injectable()
 export class UserService {
@@ -30,8 +32,29 @@ export class UserService {
     private tokenService: TokenService,
   ) {}
 
+  private async comparePassword(password: string, hashedPassword: string) {
+    return await bcrypt.compare(password, hashedPassword);
+  }
+
   private async hashedPassword(password: string) {
     return await bcrypt.hash(password, 10);
+  }
+
+  async validateUser(dto: LoginDto): Promise<IUserResponse> {
+    try {
+      const user = await this.userModel.findOne({
+        email: dto.email,
+      });
+
+      const isAuth = await this.comparePassword(dto.password, user.password);
+      if (!isAuth) {
+        throw new UnauthorizedException();
+      }
+      const { password, profile, createAt, ...userPayload } = user.toObject();
+      return userPayload as IUserResponse;
+    } catch (err) {
+      throw new UnauthorizedException();
+    }
   }
 
   async createUser(dto: RegisterDto): Promise<string> {

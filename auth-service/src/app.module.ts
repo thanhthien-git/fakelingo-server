@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from './modules/auth.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { Mongoose } from 'mongoose';
 import { MongooseModule } from '@nestjs/mongoose';
-import { HttpModule } from '@nestjs/axios';
-
+import configuration from './config/config';
+import { TokenModule } from 'fakelingo-token';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [configuration],
+      envFilePath: '.env',
     }),
+    TokenModule.forRoot(process.env.SECRET_KEY),
     MongooseModule.forRoot(process.env.MONGODB_URL),
     AuthModule,
   ],

@@ -1,7 +1,6 @@
-import { Field, ID } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { ROLE } from 'src/enums/role.enum';
+import { ROLE } from 'src/modules/auth/enums/role.enum';
 
 class Location {
   @Prop([Number])
@@ -47,22 +46,18 @@ class Profile {
 
 @Schema({ collection: 'users' })
 export class User {
-  @Field(() => ID)
   @Prop()
   _id?: Types.ObjectId;
 
-  @Field()
-  @Prop({ unique: true })
+  @Prop()
   email: string;
 
-  @Field()
-  @Prop({ unique: true })
+  @Prop()
   userName: string;
 
   @Prop()
   password: string;
 
-  @Field()
   @Prop({ type: String })
   role: keyof typeof ROLE;
 
@@ -72,7 +67,6 @@ export class User {
   @Prop()
   lastActive: Date;
 
-  @Field()
   @Prop({ type: () => Profile })
   profile: Profile;
 }
@@ -113,6 +107,6 @@ export interface IUser {
   profile?: IProfile;
 }
 
-export type IFeedUser = Omit<IProfile, 'name' | 'bio' | 'photos'>;
+export type IFeedUser = Omit<IProfile, 'name' | 'bio' | 'photos' >
 
-export type IUserResponse = Omit<IUser, 'password' | 'role' | 'createAt'>;
+export type IUserResponse = Omit<IUser, 'password | role '>;

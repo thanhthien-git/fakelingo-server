@@ -15,6 +15,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { RegisterDto } from './dtos/register.dto';
 import { IUserRequest } from 'src/interfaces/jwt-payload.interface';
 import { User } from 'src/decorators/user-request.decorator';
+import { LoginDto } from './dtos/login.dto';
 
 @Controller('user')
 export class UserController {
@@ -24,12 +25,17 @@ export class UserController {
   async createUser(@Body() dto: RegisterDto) {
     return await this.userService.createUser(dto);
   }
+
+  @Post('validate-user')
+  async validateUser(@Body() dto: LoginDto) {
+    return await this.userService.validateUser(dto);
+  }
+
   @Get('profile')
   async getMyProfile(@User() u: IUserRequest) {
     const { userId } = u;
     return await this.userService.getProfileById(userId);
   }
-
   @Get('profile')
   async getProfileById(@Param('id') id: string) {
     return await this.userService.getProfileById(id);
