@@ -1,7 +1,7 @@
 import { Field, ID } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { ROLE } from 'src/enums/role.enum';
+import { ROLE } from 'src/enum/role.enum';
 
 class Location {
   @Prop([Number])
@@ -66,7 +66,7 @@ export class User {
   @Prop({ type: String })
   role: keyof typeof ROLE;
 
-  @Prop()
+  @Prop({ select: false })
   createAt: Date;
 
   @Prop()

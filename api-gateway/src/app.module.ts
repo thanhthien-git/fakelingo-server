@@ -7,6 +7,9 @@ import { TokenModule } from 'fakelingo-token';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 import { AuthController } from './apis/auth/auth.controller';
 import { ProxyService } from './apis/proxy/proxy.service';
+import { UserController } from './apis/user/user.controller';
+import { JwtMiddleware } from './middlewares/auth.middleware';
+import { FeedController } from './apis/feed/feed.controller';
 
 @Module({
   imports: [
@@ -15,11 +18,12 @@ import { ProxyService } from './apis/proxy/proxy.service';
     TokenModule.forRoot(process.env.SECRET_KEY),
     ClientsModule.register(createRmqClients(process.env.RABBITMQ_URL)),
   ],
-  controllers: [AuthController],
-  providers: [ProxyService],
+  controllers: [AuthController, UserController, FeedController],
+  providers: [ProxyService, JwtMiddleware],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(JwtMiddleware).forRoutes('user');
   }
 }

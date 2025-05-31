@@ -2493,17 +2493,10 @@ external-editor@^3.0.3, external-editor@^3.1.0:
     iconv-lite "^0.4.24"
     tmp "^0.0.33"
 
-fakelingo-token@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/fakelingo-token/-/fakelingo-token-1.0.1.tgz#ff81dcfe3393f394cce90227ba76f450fdfbc825"
-  integrity sha512-aXusiS3FHyaY/0IGIqzdeikMoV8Il8keyRj0TheyI3azvEnLBc9JZJynn6frbwOH7I8zTd1k81icOQGrKlBOFw==
-  dependencies:
-    "@nestjs/common" "^10.0.0"
-    "@nestjs/core" "^10.0.0"
-    "@nestjs/jwt" "^11.0.0"
-    "@nestjs/platform-express" "^10.0.0"
-    reflect-metadata "^0.2.0"
-    rxjs "^7.8.1"
+fakelingo-token@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/fakelingo-token/-/fakelingo-token-2.0.4.tgz#c4a29312e2f1e72900e8d40422a168738d9df0a7"
+  integrity sha512-btTCQXsoHrS/f1dquO4tSdlA9+qoy5tUsKLJ08vdfHWsoYz9jRg8QREQit2LhW0IQ7BY1H6ULa60oxeOXuo9Pg==
 
 fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   version "3.1.3"

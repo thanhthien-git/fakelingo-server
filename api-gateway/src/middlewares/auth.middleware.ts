@@ -3,6 +3,7 @@ import {
   NestMiddleware,
   UnauthorizedException,
 } from '@nestjs/common';
+
 import { TokenService } from 'fakelingo-token';
 
 @Injectable()
@@ -11,8 +12,7 @@ export class JwtMiddleware implements NestMiddleware {
 
   async use(req: any, res: any, next: () => void) {
     try {
-      const authHeader = req.headers.authorization;
-      const token = authHeader?.split(' ')[1];
+      const token = req.headers.authorization?.split(' ')[1];
       if (!token) {
         throw new UnauthorizedException('No token provided');
       }
@@ -23,12 +23,6 @@ export class JwtMiddleware implements NestMiddleware {
       }
 
       req.user = payload;
-
-      req.forwardHeaders = {
-        authorization: authHeader,
-        'x-request-id': req.headers['x-request-id'],
-      };
-
       next();
     } catch (error) {
       throw new UnauthorizedException(error.message);

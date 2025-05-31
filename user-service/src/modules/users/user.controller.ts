@@ -16,6 +16,7 @@ import { RegisterDto } from './dtos/register.dto';
 import { IUserRequest } from 'src/interfaces/jwt-payload.interface';
 import { User } from 'src/decorators/user-request.decorator';
 import { LoginDto } from './dtos/login.dto';
+import { FeedNewUserDto } from './dtos/feed-new-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -31,12 +32,13 @@ export class UserController {
     return await this.userService.validateUser(dto);
   }
 
-  @Get('profile')
+  @Get('profile/me')
   async getMyProfile(@User() u: IUserRequest) {
     const { userId } = u;
     return await this.userService.getProfileById(userId);
   }
-  @Get('profile')
+
+  @Get('profile/:id')
   async getProfileById(@Param('id') id: string) {
     return await this.userService.getProfileById(id);
   }
@@ -58,5 +60,11 @@ export class UserController {
   async deleteProfile(@User() u) {
     const { userId } = u;
     return await this.userService.deleteAccount(userId);
+  }
+
+  @Post('find-by-condition')
+  async findByCondition(@User() u, @Body() dto: FeedNewUserDto) {
+    const { userId } = u;
+    return await this.userService.findUserByCondition(dto, 10, userId);
   }
 }

@@ -44,7 +44,7 @@ export class UserService {
     try {
       const user = await this.userModel.findOne({
         email: dto.email,
-      });
+      }).select('+password');
 
       const isAuth = await this.comparePassword(dto.password, user.password);
       if (!isAuth) {
@@ -264,6 +264,7 @@ export class UserService {
       const users: IUserResponse[] = await this.userModel
         .find(query)
         .limit(limit)
+        .select('-password')
         .exec();
 
       return users;

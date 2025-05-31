@@ -2,8 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
-import { AxiosResponse } from 'axios';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { CONFIG } from 'src/config/config';
 
 @Injectable({ scope: Scope.REQUEST })
@@ -34,13 +33,20 @@ export class ProxyService {
     const baseUrl = this.SERVICE[service];
     const url = `${baseUrl}/${path}`;
 
+    const reqHeader = this.request.headers;
+
+    const requestHeader = {
+      ...headers,
+      reqHeader,
+    };
+
     try {
       const response = await firstValueFrom(
         this.httpService.request({
           method,
           url,
           data,
-          headers,
+          headers: requestHeader,
         }),
       );
       return response.data;
