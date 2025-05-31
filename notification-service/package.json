@@ -1,5 +1,5 @@
 {
-  "name": "swipe-service",
+  "name": "notification-service",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -20,20 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@fakelingo/cache-lib": "^2.0.3",
-    "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^10.0.0",
-    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^10.0.0",
-    "@nestjs/microservices": "^11.1.2",
-    "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^10.0.0",
-    "axios": "^1.9.0",
-    "class-validator": "^0.14.2",
-    "fakelingo-token": "^2.0.4",
-    "mongo": "^0.1.0",
-    "mongoose": "^8.15.1",
-    "redis": "^5.1.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },
@@ -76,8 +65,5 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  },
-  "resolutions": {
-    "file-type": "^20.1.0"
   }
 }
