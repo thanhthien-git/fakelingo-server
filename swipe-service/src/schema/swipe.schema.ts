@@ -12,9 +12,11 @@ export class Swipe {
   _id?: Types.ObjectId;
 
   @Prop()
+  sendFromId: Types.ObjectId;
+  @Prop()
   targetUserId: Types.ObjectId;
 
-  @Prop({ type: SwipeType })
+  @Prop()
   type: SwipeType;
 }
 
@@ -24,6 +26,7 @@ export const SwipeSchema = SchemaFactory.createForClass(Swipe);
 
 export interface ISwipe {
   _id?: Types.ObjectId;
+  sendFromId: Types.ObjectId;
   targetUserId: Types.ObjectId;
   type: SwipeType;
 }

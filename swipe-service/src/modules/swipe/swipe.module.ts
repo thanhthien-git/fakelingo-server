@@ -1,10 +1,19 @@
 import { Module } from '@nestjs/common';
 import { SwipeController } from './swipe.controller';
 import { SwipeService } from './swipe.service';
+import { HttpModule } from '@nestjs/axios';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Swipe, SwipeSchema } from 'src/schema/swipe.schema';
+import { CacheModule, CacheService } from '@fakelingo/cache-lib';
+import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
 
 @Module({
-  imports: [],
+  imports: [
+    MongooseModule.forFeature([{ name: Swipe.name, schema: SwipeSchema }]),
+    HttpModule,
+    RabbitMQModule,
+  ],
   controllers: [SwipeController],
-  providers: [SwipeService],
+  providers: [SwipeService, CacheService],
 })
 export class SwipeModule {}

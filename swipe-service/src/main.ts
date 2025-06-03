@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const port = process.env.PORT ?? 8088;
@@ -15,6 +16,7 @@ async function bootstrap() {
       },
     },
   });
+  app.use(new ValidationPipe());
 
   await app.startAllMicroservices();
   await app.listen(port);

@@ -1,8 +1,15 @@
 import { Types } from 'mongoose';
-import { ISwipe, SwipeType } from 'src/schema/swipe.schema';
+import { SwipeType } from 'src/schema/swipe.schema';
+import { Transform } from 'class-transformer';
 
-export class SwipeDto implements ISwipe {
-  _id?: Types.ObjectId;
+export class SwipeDto {
+  @Transform(({ value }) => new Types.ObjectId(value), { toClassOnly: true })
   targetUserId: Types.ObjectId;
+
   type: SwipeType;
+}
+
+export class SwipePayloadDto {
+  sendFromUser: string;
+  targetUser: string;
 }

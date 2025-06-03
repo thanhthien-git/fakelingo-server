@@ -46,12 +46,18 @@ export class FeedService {
         return users;
       }
       const matchIdsInCache = await this.getMatchedUsers(reqPayload.userId);
+      const leftSwipedIds = await this.cache.sMembers(
+        `swipe:left:${reqPayload.userId}`,
+      );
 
       users = await this.getByCondition(feedDto, reqPayload);
 
       const filteredIds = users.filter(
-        (u) => !matchIdsInCache.includes(String(u._id)),
+        (u) =>
+          !matchIdsInCache.includes(String(u._id)) &&
+          !leftSwipedIds.includes(String(u._id)),
       );
+      
       const newUserIds = filteredIds.map((u) => String(u._id));
 
       if (newUserIds.length) {

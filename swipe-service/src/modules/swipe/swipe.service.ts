@@ -1,54 +1,85 @@
 import { CacheService } from '@fakelingo/cache-lib';
-import { Inject, Injectable } from '@nestjs/common';
+import { BadGatewayException, Inject, Injectable } from '@nestjs/common';
 import { RedisClientType } from '@redis/client';
-import { Model } from 'mongoose';
-import { Swipe, SwipeType } from 'src/schema/swipe.schema';
-import { SwipeDto } from './dto/swipe-dto';
+import { Model, Types } from 'mongoose';
+import { ISwipe, Swipe, SwipeType } from 'src/schema/swipe.schema';
+import { SwipeDto, SwipePayloadDto } from './dto/swipe-dto';
 import { HttpService } from '@nestjs/axios';
+import { InjectModel } from '@nestjs/mongoose';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { Type } from 'class-transformer';
+import { timestamp } from 'rxjs';
 
 @Injectable()
 export class SwipeService {
   private cache: RedisClientType;
   private readonly FEED_KEY = (userId: string) => `feeds:userId:${userId}`;
   private readonly MATCH_KEY = (userId: string) => `match:${userId}`;
+  private readonly SWIPE_KEY = (userId: string) => `swipe:left:${userId}`;
+  private readonly EXPIRE_TIME = 3600;
 
   private readonly MATCH_SERVICE = process.env.MATCH_SERVICE;
 
   constructor(
-    @Inject(Swipe) private swipeModel: Model<Swipe>,
+    @InjectModel(Swipe.name) private swipeModel: Model<Swipe>,
     private cacheService: CacheService,
     private httpService: HttpService,
+    @Inject('MATCH_SERVICE_CLIENT') private readonly matchClient: ClientProxy,
   ) {
     this.cache = cacheService.getClient();
   }
 
-  async handleSwipe(userId: string, dto: SwipeDto): Promise<Object> {
-    const { targetUserId, type } = dto;
-    const feedKey = this.FEED_KEY(userId);
+  private async createSwipe(swipe: ISwipe) {
+    try {
+      await this.swipeModel.create(swipe);
+    } catch (err) {
+      throw new BadGatewayException(
+        err.message || 'Unexpected error when create swipe',
+      );
+    }
+  }
+  async handleSwipe(userId: string, dto: SwipeDto) {
+    try {
+      const { type, targetUserId } = dto;
+      await this.createSwipe({
+        _id: new Types.ObjectId(),
+        sendFromId: new Types.ObjectId(userId),
+        targetUserId: dto.targetUserId,
+        type: dto.type,
+      });
 
-    //remove user from cache
-    await this.cache.lRem(feedKey, 0, String(targetUserId));
+      const payload: SwipePayloadDto = {
+        sendFromUser: userId,
+        targetUser: String(targetUserId),
+      };
 
-    if (type === SwipeType.L) return await this.handleSwipeLeft();
+      if (type === SwipeType.L) {
+        this.handleSwipeLeft(payload);
+      }
 
-    //double-check is existed match in db
-    const targetMatchKey = this.MATCH_KEY(String(targetUserId));
-    const isMutual = await this.cache.sIsMember(targetMatchKey, userId);
-
-    if (isMutual) {
-      //add match
-      await this.cache.sAdd(this.MATCH_KEY(userId), String(targetUserId));
-
-      //send message-broker to match-service -> notification-service
-      const response = await this.httpService
-        .post(`${this.MATCH_SERVICE}/match`, dto)
-        .toPromise();
-
-      return response.data;
+      if (type === SwipeType.R) {
+        this.handleSwipeRight(payload);
+      }
+    } catch (err) {
+      throw new BadGatewayException(
+        err.message || 'Unexpected error when solving swipe',
+      );
     }
   }
 
-  async handleSwipeLeft() {
-    return 'skipped';
+  private async handleSwipeLeft(payload: SwipePayloadDto) {
+    const { sendFromUser, targetUser } = payload;
+    const key = this.SWIPE_KEY(sendFromUser);
+    await this.cache.sAdd(key, targetUser);
+    await this.cache.expire(key, this.EXPIRE_TIME);
+  }
+
+  private async handleSwipeRight(payload: SwipePayloadDto) {
+    const data = {
+      ...payload,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.matchClient.emit('swipe.right', payload).toPromise();
   }
 }
