@@ -16,6 +16,7 @@ async function bootstrap() {
       queueOptions: { durable: false },
     },
   });
+  app.enableCors();
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new HttpGlobalExceptionFilter());
 

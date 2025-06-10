@@ -10,6 +10,7 @@ export class SwipeDto {
 }
 
 export class SwipePayloadDto {
+  type: string;
   sendFromUser: string;
   targetUser: string;
 }

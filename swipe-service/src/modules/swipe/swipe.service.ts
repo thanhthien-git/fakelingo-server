@@ -6,9 +6,7 @@ import { ISwipe, Swipe, SwipeType } from 'src/schema/swipe.schema';
 import { SwipeDto, SwipePayloadDto } from './dto/swipe-dto';
 import { HttpService } from '@nestjs/axios';
 import { InjectModel } from '@nestjs/mongoose';
-import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { Type } from 'class-transformer';
-import { timestamp } from 'rxjs';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class SwipeService {
@@ -24,7 +22,8 @@ export class SwipeService {
     @InjectModel(Swipe.name) private swipeModel: Model<Swipe>,
     private cacheService: CacheService,
     private httpService: HttpService,
-    @Inject('MATCH_SERVICE_CLIENT') private readonly matchClient: ClientProxy,
+    @Inject('NOTIFICATION_SERVICE_CLIENT')
+    private readonly notificationProxy: ClientProxy,
   ) {
     this.cache = cacheService.getClient();
   }
@@ -49,6 +48,7 @@ export class SwipeService {
       });
 
       const payload: SwipePayloadDto = {
+        type: "LIKE",
         sendFromUser: userId,
         targetUser: String(targetUserId),
       };
@@ -80,6 +80,6 @@ export class SwipeService {
       timestamp: new Date().toISOString(),
     };
 
-    await this.matchClient.emit('swipe.right', payload).toPromise();
+    await this.notificationProxy.emit('notification_queue', data).toPromise();
   }
 }
