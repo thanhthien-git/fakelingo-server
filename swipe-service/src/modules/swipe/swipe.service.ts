@@ -4,9 +4,9 @@ import { RedisClientType } from '@redis/client';
 import { Model, Types } from 'mongoose';
 import { ISwipe, Swipe, SwipeType } from 'src/schema/swipe.schema';
 import { SwipeDto, SwipePayloadDto } from './dto/swipe-dto';
-import { HttpService } from '@nestjs/axios';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientProxy } from '@nestjs/microservices';
+import { MatchedDto } from './dto/matched.dto';
 
 @Injectable()
 export class SwipeService {
@@ -21,22 +21,55 @@ export class SwipeService {
   constructor(
     @InjectModel(Swipe.name) private swipeModel: Model<Swipe>,
     private cacheService: CacheService,
-    private httpService: HttpService,
     @Inject('NOTIFICATION_SERVICE_CLIENT')
     private readonly notificationProxy: ClientProxy,
+
+    @Inject('MATCH_SERVICE_CLIENT')
+    private readonly matchProxy: ClientProxy,
   ) {
     this.cache = cacheService.getClient();
   }
 
   private async createSwipe(swipe: ISwipe) {
     try {
-      await this.swipeModel.create(swipe);
+      const { sendFromId, targetUserId } = swipe;
+      const isExist: Swipe = await this.swipeModel.findOne({
+        sendFromId: sendFromId,
+        targetUserId: targetUserId,
+      });
+
+      if (isExist) {
+        return isExist;
+      }
+
+      const newSwipe = await this.swipeModel.create(swipe);
+
+      const reverseSwipe = await this.swipeModel.findOne({
+        sendFromId: targetUserId,
+        targetUserId: sendFromId,
+      });
+
+      const isMatched = !!reverseSwipe;
+
+      if (isMatched) {
+        //logic for creating a match
+        const matchDto: MatchedDto = {
+          fromUser: String(swipe.sendFromId),
+          toUser: String(swipe.targetUserId),
+        };
+
+        await this.matchProxy.emit('user.matched', matchDto);
+        await this.notificationProxy.emit('user.matched ', matchDto);
+
+        return newSwipe;
+      }
     } catch (err) {
       throw new BadGatewayException(
         err.message || 'Unexpected error when create swipe',
       );
     }
   }
+
   async handleSwipe(userId: string, dto: SwipeDto) {
     try {
       const { type, targetUserId } = dto;
@@ -48,7 +81,7 @@ export class SwipeService {
       });
 
       const payload: SwipePayloadDto = {
-        type: "LIKE",
+        type: 'LIKE',
         sendFromUser: userId,
         targetUser: String(targetUserId),
       };
@@ -81,5 +114,79 @@ export class SwipeService {
     };
 
     await this.notificationProxy.emit('notification_queue', data).toPromise();
+  }
+
+  async getUnreadSwipe(userId: string, page = 1, limit = 10) {
+    try {
+      //paginated
+      const skip = (page - 1) * limit;
+
+      const liked = await this.swipeModel.aggregate([
+        //match stage
+        {
+          $match: {
+            targetUserId: new Types.ObjectId(userId),
+          },
+        },
+        //lookup stage
+        {
+          $lookup: {
+            from: ' swipes',
+            let: { likedId: '$sendFromId' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ['$sendFromId', new Types.ObjectId(userId)] },
+                      { $eq: ['$targetUserId', '$$likedId'] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: 'response',
+          },
+        },
+        {
+          $match: {
+            response: { $size: 0 },
+          },
+        },
+        //lookup to user collection
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'sendFromId',
+            foreignField: '_id',
+            as: 'userInfo',
+          },
+        },
+        //unwind stage
+        {
+          $unwind: '$userInfo',
+        },
+        {
+          $replaceRoot: { newRoot: '$userInfo' },
+        },
+        //project stage
+        {
+          $project: {
+            password: 0,
+          },
+        },
+        //paginated
+        {
+          $skip: skip,
+        },
+        {
+          $limit: limit,
+        },
+      ]);
+
+      return liked;
+    } catch (err) {
+      throw new BadGatewayException(err);
+    }
   }
 }

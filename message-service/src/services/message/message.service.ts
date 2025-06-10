@@ -1,4 +1,9 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SendMessageDto } from 'src/dtos/send-message.dto';
@@ -34,5 +39,15 @@ export class MessageService {
       title: 'Tin nhắn mới',
       body: message.content,
     });
+  }
+
+  async getMessageByUserId(userId: string): Promise<Message[]> {
+    try {
+      const message: Message[] = await this.messageModel.find({});
+
+      return message;
+    } catch (err) {
+      throw new BadGatewayException(err);
+    }
   }
 }

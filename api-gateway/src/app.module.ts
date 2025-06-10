@@ -10,6 +10,8 @@ import { ProxyService } from './apis/proxy/proxy.service';
 import { UserController } from './apis/user/user.controller';
 import { JwtMiddleware } from './middlewares/auth.middleware';
 import { FeedController } from './apis/feed/feed.controller';
+import { MessageController } from './apis/message/message.controller';
+import { SwipeController } from './apis/swipe/swipe.controller';
 
 @Module({
   imports: [
@@ -18,7 +20,13 @@ import { FeedController } from './apis/feed/feed.controller';
     TokenModule.forRoot(process.env.SECRET_KEY),
     ClientsModule.register(createRmqClients(process.env.RABBITMQ_URL)),
   ],
-  controllers: [AuthController, UserController, FeedController],
+  controllers: [
+    AuthController,
+    UserController,
+    FeedController,
+    MessageController,
+    SwipeController,
+  ],
   providers: [ProxyService, JwtMiddleware],
 })
 export class AppModule implements NestModule {

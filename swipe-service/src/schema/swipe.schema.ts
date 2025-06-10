@@ -13,8 +13,12 @@ export class Swipe {
 
   @Prop()
   sendFromId: Types.ObjectId;
+
   @Prop()
   targetUserId: Types.ObjectId;
+
+  @Prop()
+  isTargetSwiped: boolean;
 
   @Prop()
   type: SwipeType;
