@@ -5,6 +5,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
 } from '@nestjs/common';
 import { User } from 'src/decorators/user-request.decorator';
 import { IUserRequest } from 'fakelingo-token';
@@ -19,6 +20,7 @@ export class SwipeController {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
     body?: any,
     headers?: any,
+    query?: any,
   ): Promise<T> {
     try {
       return await this.proxyService.forwardRequest(
@@ -27,6 +29,7 @@ export class SwipeController {
         method,
         body,
         headers,
+        query,
       );
     } catch (err) {
       console.error(`SWIPE Service error on ${method} ${path}:`, err);
@@ -40,7 +43,16 @@ export class SwipeController {
   }
 
   @Get('unread')
-  async getUnread() {
-    return await this.forWardToSwipeService('swipe/unread', 'GET');
+  async getUnread(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.forWardToSwipeService(
+      'swipe/unread',
+      'GET',
+      undefined,
+      undefined,
+      { page, limit },
+    );
   }
 }

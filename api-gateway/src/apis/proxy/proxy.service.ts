@@ -29,6 +29,7 @@ export class ProxyService {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
     data?: any,
     headers?: any,
+    query?: any,
   ): Promise<T> {
     const baseUrl = this.SERVICE[service];
     const url = `${baseUrl}/${path}`;
@@ -37,7 +38,7 @@ export class ProxyService {
 
     const requestHeader = {
       ...headers,
-      reqHeader,
+      ...reqHeader,
     };
 
     try {
@@ -47,6 +48,7 @@ export class ProxyService {
           url,
           data,
           headers: requestHeader,
+          params: query,
         }),
       );
       return response.data;
