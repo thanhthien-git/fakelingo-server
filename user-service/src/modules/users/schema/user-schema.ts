@@ -62,6 +62,9 @@ export class User {
   @Prop({ select: false })
   password: string;
 
+  @Prop({ select: false })
+  fcmToken?: string;
+
   @Field()
   @Prop({ type: String })
   role: keyof typeof ROLE;

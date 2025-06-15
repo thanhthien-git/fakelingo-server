@@ -20,6 +20,7 @@ import * as FormData from 'form-data';
 import * as bcrypt from 'bcrypt';
 import { CacheService } from '@fakelingo/cache-lib';
 import { LoginDto } from './dtos/login.dto';
+import { UpdateFcmTokenDto } from './dtos/update-fcm-token';
 
 @Injectable()
 export class UserService {
@@ -42,9 +43,11 @@ export class UserService {
 
   async validateUser(dto: LoginDto): Promise<IUserResponse> {
     try {
-      const user = await this.userModel.findOne({
-        email: dto.email,
-      }).select('+password');
+      const user = await this.userModel
+        .findOne({
+          email: dto.email,
+        })
+        .select('+password');
 
       const isAuth = await this.comparePassword(dto.password, user.password);
       if (!isAuth) {
@@ -100,8 +103,9 @@ export class UserService {
   async getUserByIds(userIds: string[]): Promise<IUserResponse[]> {
     try {
       let users: IUserResponse[] = [];
+
       const objIds = userIds.map((userId: string) => {
-        new Types.ObjectId(userId);
+        return new Types.ObjectId(userId);
       });
 
       users = await this.userModel.find({
@@ -272,5 +276,16 @@ export class UserService {
       console.log('Error stack:', err.stack);
       throw new BadRequestException(err);
     }
+  }
+
+  async updateUserFcmToken(dto: UpdateFcmTokenDto, userId: string) {
+    return await this.userModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(userId),
+      },
+      {
+        fcmToken: dto.fcmToken,
+      },
+    );
   }
 }

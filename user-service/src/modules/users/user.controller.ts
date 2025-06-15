@@ -17,6 +17,8 @@ import { IUserRequest } from 'src/interfaces/jwt-payload.interface';
 import { User } from 'src/decorators/user-request.decorator';
 import { LoginDto } from './dtos/login.dto';
 import { FeedNewUserDto } from './dtos/feed-new-user.dto';
+import { GetUserByIdsDto } from './dtos/get-by-ids.dto';
+import { UpdateFcmTokenDto } from './dtos/update-fcm-token';
 
 @Controller('user')
 export class UserController {
@@ -25,6 +27,21 @@ export class UserController {
   @Post('create')
   async createUser(@Body() dto: RegisterDto) {
     return await this.userService.createUser(dto);
+  }
+
+  @Post('fcm-token')
+  async updateFcmtoken(
+    @Body() dto: UpdateFcmTokenDto,
+    @User() u: IUserRequest,
+  ) {
+    return await this.userService.updateUserFcmToken(dto, u.userId);
+  }
+
+  @Post('get-by-ids')
+  async getUserByIds(@Body() dto: GetUserByIdsDto) {
+    const { ids } = dto;
+    console.log(ids);
+    return await this.userService.getUserByIds(ids);
   }
 
   @Post('validate-user')
