@@ -13,7 +13,7 @@ This repository contains the backend services for the app, each responsible for 
 - **Notification Service**: Sends push notifications and system alerts.
 
 The architecture is illustrated in the following diagram:  
-![System Architecture](https://ibb.co/kWm8d3d)
+![System Architecture](https://i.ibb.co/VPwSKHK/Blank-diagram-1.png)
 
 ---
 
