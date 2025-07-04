@@ -9,11 +9,13 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: [process.env.RABBITMQ_URL],
-      queue: 'NOTIFICATION_QUEUE',
-      queueOptions: { durable: false },
+      queue: 'notification_queue',
+      queueOptions: {
+        durable: false,
+      },
     },
   });
-  
+
   await app.startAllMicroservices();
   await app.listen(process.env.PORT ?? 8086);
 }

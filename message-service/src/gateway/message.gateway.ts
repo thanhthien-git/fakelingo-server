@@ -1,3 +1,4 @@
+import { forwardRef, Inject } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -9,7 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SendMessageDto } from 'src/dtos/send-message.dto';
-import { MessageService } from 'src/services/message/message.service';
+import { MessageService } from 'src/modules/message/message.service';
 
 @WebSocketGateway({ cors: true })
 export class MessageGateway
@@ -18,13 +19,18 @@ export class MessageGateway
   @WebSocketServer() server: Server;
   private userSocketMap = new Map<string, Set<string>>();
 
-  constructor(private readonly messageService: MessageService) {}
+  constructor(
+    @Inject(forwardRef(() => MessageService))
+    private readonly messageService: MessageService,
+  ) {}
 
   handleConnection(client: Socket) {
     const userId = client.handshake.query.userId as string;
     if (!userId) return client.disconnect();
 
     const sockets = this.userSocketMap.get(userId) || new Set();
+    console.log(`new client: ${userId}`);
+    
     sockets.add(client.id);
     this.userSocketMap.set(userId, sockets);
   }

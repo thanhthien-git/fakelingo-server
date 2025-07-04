@@ -4,7 +4,6 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { User, UserSchema } from 'src/modules/auth/schema/user-schema';
 import { HttpModule } from '@nestjs/axios';
-import { TokenModule } from 'fakelingo-token';
 
 @Module({
   imports: [

@@ -34,12 +34,16 @@ export class ProxyService {
     const baseUrl = this.SERVICE[service];
     const url = `${baseUrl}/${path}`;
 
-    const reqHeader = this.request.headers;
+    const forwardableHeaders = ['authorization', 'content-type', 'accept'];
 
-    const requestHeader = {
-      ...headers,
-      ...reqHeader,
-    };
+    const filteredHeaders: Record<string, string> = Object.fromEntries(
+      Object.entries({
+        ...this.request.headers,
+        ...headers,
+      })
+        .filter(([key]) => forwardableHeaders.includes(key.toLowerCase()))
+        .map(([key, value]) => [key.toLowerCase(), String(value)]), 
+    );
 
     try {
       const response = await firstValueFrom(
@@ -47,7 +51,7 @@ export class ProxyService {
           method,
           url,
           data,
-          headers: requestHeader,
+          headers: filteredHeaders,
           params: query,
         }),
       );

@@ -11,7 +11,7 @@ export class NotificationService {
     userId: string;
     title: string;
     body: string;
-  }) {
+  }) { 
     this.client.emit('notification.queue', data);
   }
 }

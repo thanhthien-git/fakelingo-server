@@ -10,7 +10,6 @@ import { ProxyService } from './apis/proxy/proxy.service';
 import { UserController } from './apis/user/user.controller';
 import { JwtMiddleware } from './middlewares/auth.middleware';
 import { FeedController } from './apis/feed/feed.controller';
-import { MessageController } from './apis/message/message.controller';
 import { SwipeController } from './apis/swipe/swipe.controller';
 
 @Module({
@@ -24,7 +23,6 @@ import { SwipeController } from './apis/swipe/swipe.controller';
     AuthController,
     UserController,
     FeedController,
-    MessageController,
     SwipeController,
   ],
   providers: [ProxyService, JwtMiddleware],

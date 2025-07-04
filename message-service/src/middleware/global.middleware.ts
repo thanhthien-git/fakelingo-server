@@ -16,16 +16,14 @@ export class GlobalMiddleware implements NestMiddleware {
       const method = req.method;
       const originalUrl = req.originalUrl || req.url;
       console.log(
-        `[NOTIFICATION SERVICE - Middleware] ${method} ${originalUrl} - IP: ${ip}`,
+        `[MESSAGE SERVICE - Middleware] ${method} ${originalUrl} - IP: ${ip}`,
       );
       if (!token) {
         throw new UnauthorizedException(`No token provided`);
       }
 
       const decoded: IUserRequest = await this.tokenService.verifyToken(token);
-
       req.user = decoded;
-
       next();
     } catch (error) {
       throw new UnauthorizedException(error.message);

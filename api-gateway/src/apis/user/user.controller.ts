@@ -10,14 +10,16 @@ import {
   BadGatewayException,
   Inject,
   BadRequestException,
+  Post,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProxyService } from '../proxy/proxy.service';
 import { IUserRequest } from 'fakelingo-token';
 import { User } from 'src/decorators/user-request.decorator';
 import { UpdateProfileDto } from './dtos/update.dto';
-import { ClientProxy, Payload } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { CONFIG } from 'src/config/config';
+import { UpdateFcmTokenDto } from './dtos/update-fcm-token';
 
 @Controller('user')
 export class UserController {
@@ -89,5 +91,15 @@ export class UserController {
   @Delete()
   async deleteProfile(@User() user: IUserRequest) {
     return this.forwardToUserService(`user/delete/${user.userId}`, 'DELETE');
+  }
+
+  @Post('fcm-token')
+  async updateFcmToken(@Body() dto: UpdateFcmTokenDto) {
+    return this.proxyService.forwardRequest(
+      'NOTI',
+      'notifications/fcm-token',
+      'POST',
+      dto,
+    );
   }
 }

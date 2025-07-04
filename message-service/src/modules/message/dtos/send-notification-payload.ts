@@ -4,7 +4,6 @@ export class NotificationPayloadDto {
   type: NotificationType;
   title?: string;
   body?: string;
-  fcmToken: string;
 }
 
 export type NotificationType = 'like' | 'match' | 'message';
