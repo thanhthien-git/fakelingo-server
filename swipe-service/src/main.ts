@@ -16,8 +16,7 @@ async function bootstrap() {
       },
     },
   });
-  app.use(new ValidationPipe());
-
+  app.useGlobalPipes(new ValidationPipe());
   await app.startAllMicroservices();
   await app.listen(port);
   console.log(`SWIPE service is running on port ${port}`);

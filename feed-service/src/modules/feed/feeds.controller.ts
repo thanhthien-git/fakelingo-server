@@ -1,13 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
 import { FeedNewUserDto } from './dtos/get-list.dto';
 import { FeedService } from './feeds.service';
+import { User } from 'src/decorators/user-request.decorator';
+import { IUserRequest } from 'fakelingo-token';
+import { IUserReq } from 'src/interfaces/user.request';
 
 @Controller('feed')
 export class FeedController {
   constructor(private feedService: FeedService) {}
 
   @Post('get')
-  async getFeed(@Body() dto: FeedNewUserDto) {
-    return await this.feedService.getNextFeed('6826fefad6902dfcebee5e24', dto);
+  async getFeed(@Body() dto: FeedNewUserDto, @User() u: IUserReq) {
+    return await this.feedService.getNextFeed(u, dto);
   }
 }

@@ -105,6 +105,7 @@ export class SwipeService {
     const key = this.SWIPE_KEY(sendFromUser);
     await this.cache.sAdd(key, targetUser);
     await this.cache.expire(key, this.EXPIRE_TIME);
+    console.log(key);
   }
 
   private async handleSwipeRight(payload: SwipePayloadDto) {

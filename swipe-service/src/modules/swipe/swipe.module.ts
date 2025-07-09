@@ -14,6 +14,6 @@ import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
     RabbitMQModule,
   ],
   controllers: [SwipeController],
-  providers: [SwipeService, CacheService],
+  providers: [SwipeService],
 })
 export class SwipeModule {}

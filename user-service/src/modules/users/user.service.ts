@@ -229,15 +229,18 @@ export class UserService {
   ): Promise<IUserResponse[]> {
     try {
       const { condition } = dto;
-      const { location, preferences } = condition;
-      const query: any = {
+      const { location, preferences, gender } = condition;
+
+      const baseQuery: any = {
         _id: { $ne: new Types.ObjectId(userId) },
       };
 
+      const query: any = { ...baseQuery };
       const orConditions = [];
 
-      if (preferences.gender) {
-        orConditions.push({ 'profile.gender': preferences.gender });
+      if (gender) {
+        orConditions.push({ 'profile.gender': gender });
+        baseQuery['profile.gender'] = gender
       }
 
       if (preferences.ageRange) {
@@ -253,28 +256,40 @@ export class UserService {
         query.$or = orConditions;
       }
 
-      if (location && location.coordinates && preferences.max_distance) {
+      if (location?.coordinates && preferences.max_distance) {
         query['profile.location'] = {
           $near: {
             $geometry: {
               type: 'Point',
               coordinates: location.coordinates,
             },
-            $maxDistance: preferences.max_distance * 1000,
+            $maxDistance: preferences.max_distance * 1000, 
           },
         };
       }
 
-      const users: IUserResponse[] = await this.userModel
+      let users: IUserResponse[] = await this.userModel
         .find(query)
         .limit(limit)
         .select('-password')
         .exec();
 
+      console.log(users);
+        
+      if (users.length === 0) {
+        users = await this.userModel
+          .aggregate([
+            { $match: baseQuery},
+            { $sample: { size: limit } },
+            { $project: { password: 0 } },
+          ])
+          .exec();
+      }
+
       return users;
     } catch (err) {
-      console.log('Error stack:', err.stack);
-      throw new BadRequestException(err);
+      console.error('Error in findUserByCondition:', err);
+      throw new BadRequestException(err.message || 'Something went wrong');
     }
   }
 

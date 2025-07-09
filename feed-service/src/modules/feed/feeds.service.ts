@@ -7,6 +7,7 @@ import { RedisClientType } from '@redis/client';
 import { HttpService } from '@nestjs/axios';
 import { Model } from 'mongoose';
 import { IUserRequest } from 'fakelingo-token';
+import { IUserReq } from 'src/interfaces/user.request';
 
 @Injectable()
 export class FeedService {
@@ -25,54 +26,54 @@ export class FeedService {
   }
 
   async getNextFeed(
-    reqPayload: IUserRequest,
-    feedDto: FeedNewUserDto,
-  ): Promise<IUserResponse[]> {
-    try {
-      const key = this.cacheKey(reqPayload.userId);
-      let users: IUserResponse[] = [];
+  reqPayload: IUserReq,
+  feedDto: FeedNewUserDto,
+): Promise<IUserResponse[]> {
+  try {
+    const key = this.cacheKey(reqPayload.userId);
+    let users: IUserResponse[] = [];
 
-      const cacheIds = await this.cache.lRange(key, 0, this.FEED_LIMIT - 1);
+    const cacheIds = await this.cache.lRange(key, 0, this.FEED_LIMIT - 1);
 
-      if (cacheIds.length) {
-        await this.cache.lTrim(key, this.FEED_LIMIT, -1);
-        users = await this.userModel
-          .find({
-            _id: { $in: cacheIds },
-          })
-          .select('-password')
-          .lean();
-
-        return users;
-      }
-      const matchIdsInCache = await this.getMatchedUsers(reqPayload.userId);
-      const leftSwipedIds = await this.cache.sMembers(
-        `swipe:left:${reqPayload.userId}`,
-      );
-
-      users = await this.getByCondition(feedDto, reqPayload);
-
-      const filteredIds = users.filter(
-        (u) =>
-          !matchIdsInCache.includes(String(u._id)) &&
-          !leftSwipedIds.includes(String(u._id)),
-      );
-      
-      const newUserIds = filteredIds.map((u) => String(u._id));
-
-      if (newUserIds.length) {
-        await this.cache.rPush(key, [...newUserIds]);
-        await this.cache.expire(key, 3600);
-      }
-
-      const result = filteredIds.slice(0, this.FEED_LIMIT);
+    if (cacheIds.length) {
       await this.cache.lTrim(key, this.FEED_LIMIT, -1);
-      return result;
-    } catch {
-      console.log(`error when find user by condition`);
-      throw new BadRequestException({ message: 'Can not load your feed!' });
+
+      users = await this.userModel
+        .find({ _id: { $in: cacheIds } })
+        .select('-password')
+        .lean();
+
+      return users;
     }
+
+    const usersFromService = await this.getByCondition(feedDto, reqPayload);
+
+    const matchIdsInCache = await this.getMatchedUsers(reqPayload.userId);
+    const leftSwipedIds = await this.cache.sMembers(
+      `swipe:left:${reqPayload.userId}`,
+    );
+
+    const filtered = usersFromService.filter(
+      (u) =>
+        !matchIdsInCache.includes(String(u._id)) &&
+        !leftSwipedIds.includes(String(u._id)),
+    );
+
+    const filteredIds = filtered.map((u) => String(u._id));
+
+    if (filteredIds.length) {
+      await this.cache.rPush(key, [...filteredIds]);
+      await this.cache.expire(key, 3600);
+      await this.cache.lTrim(key, this.FEED_LIMIT, -1);
+    }
+
+    return filtered.slice(0, this.FEED_LIMIT);
+  } catch (err) {
+    console.error(err);
+    throw new BadRequestException({ message: 'Can not load your feed!' });
   }
+}
+
 
   private async getMatchedUsers(userId: string): Promise<string[]> {
     try {
@@ -86,13 +87,14 @@ export class FeedService {
 
   private async getByCondition(
     feedDto: FeedNewUserDto,
-    userPayload: IUserRequest,
+    userPayload: IUserReq,
   ): Promise<IUserResponse[]> {
     try {
       const response = await this.httpService
         .post(`${this.USER_SERVICE_ENDPOINT}/user/find-by-condition`, feedDto, {
           headers: {
             'x-user-payload': JSON.stringify(userPayload),
+            Authorization: userPayload.token,
           },
         })
         .toPromise();
@@ -101,6 +103,7 @@ export class FeedService {
       console.log(
         `error when find user by condition - calling to user-service`,
       );
+      console.log(err);
       throw new BadRequestException({ message: 'Can not load your feed!' });
     }
   }

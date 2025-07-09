@@ -10,6 +10,7 @@ export class SwipeController {
 
   @Post('action')
   async swipe(@Body() body: SwipeDto, @User() user: IUserRequest) {
+    console.log(body);
     return await this.swipeService.handleSwipe(user.userId, body);
   }
 
