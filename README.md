@@ -143,7 +143,7 @@ MIT
 ---
 
 **Diagram Reference:**  
-![System Architecture](https://ibb.co/kWm8d3d)
+![System Architecture](diagram.png)
 
 ---
 
