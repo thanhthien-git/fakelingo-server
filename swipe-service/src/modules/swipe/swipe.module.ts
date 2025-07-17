@@ -4,8 +4,7 @@ import { SwipeService } from './swipe.service';
 import { HttpModule } from '@nestjs/axios';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Swipe, SwipeSchema } from 'src/schema/swipe.schema';
-import { CacheModule, CacheService } from '@fakelingo/cache-lib';
-import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
+import { RabbitMQModule } from 'src/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [

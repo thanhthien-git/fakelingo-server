@@ -7,6 +7,7 @@ import { CacheService } from '@fakelingo/cache-lib';
 import { UpdateFcmTokenDto } from './dtos/update-fcm-token';
 import { RedisClientType } from 'redis';
 import { NotificationPayloadDto } from './dtos/send-notification-payload';
+import { SendMatchedNotiDto } from './dtos/matched-notification.dto';
 
 @Injectable()
 export class NotificationService {
@@ -17,22 +18,68 @@ export class NotificationService {
     private notificationModel: Model<Notification>,
     private cacheService: CacheService,
   ) {
-    console.log('[NotificationService] 💡 Constructor');
     this.cache = cacheService.getClient();
+  }
+
+  async sendMatchedNotification(payload: SendMatchedNotiDto) {
+    try {
+      const { firstUser, secondUser } = payload;
+      const fcmTokens = await this.getUserFcmToken([firstUser, secondUser]);
+
+      console.log(fcmTokens);
+
+      const message = {
+        title: 'Bạn có thông báo mới',
+        body: 'Bạn vừa được ghép đôi với một người khác',
+      };
+
+      if (fcmTokens) {
+        await admin.messaging().sendEach([
+          {
+            token: fcmTokens[0],
+            notification: message,
+          },
+          {
+            token: fcmTokens[1],
+            notification: message,
+          },
+        ]);
+      }
+
+      const insertContent = {
+        title: message.title,
+        message: message.body,
+        read: false,
+        type: 'like',
+        createdAt: new Date(),
+      };
+
+      await this.notificationModel.insertMany([
+        {
+          userId: firstUser,
+          ...insertContent,
+        },
+        {
+          userId: secondUser,
+          ...insertContent,
+        },
+      ]);
+    } catch (err) {
+      console.error('FCM ERROR:', err);
+      throw new BadGatewayException({ message: 'FAILED TO SEND NOTIFICATION' });
+    }
   }
 
   async sendNotification(payload: NotificationPayloadDto) {
     try {
       const { userId, title, type } = payload;
 
+      const fcmToken = await this.getUserFcmToken([userId]);
       let convertBodyMessage = this.getBodyContent(payload);
 
-      const fcmToken = await this.getUserFcmToken(userId);
-      console.log(fcmToken);
-
-      if (fcmToken) {
+      if (fcmToken.length > 0 && fcmToken[0]) {
         await admin.messaging().send({
-          token: fcmToken,
+          token: fcmToken[0],
           notification: {
             title,
             body: convertBodyMessage,
@@ -41,7 +88,6 @@ export class NotificationService {
             userId,
           },
         });
-        console.log('send');
       }
 
       await this.notificationModel.create({
@@ -95,8 +141,15 @@ export class NotificationService {
     });
   }
 
-  private async getUserFcmToken(userId: string): Promise<string> {
-    const key = this.FCM_TOKEN_KEY(userId);
-    return (await this.cache.get(key)) as string;
+  private async getUserFcmToken(userIds: string[]): Promise<string[]> {
+    const tokens = await Promise.all(
+      userIds.map(async (userId: string) => {
+        const token = (await this.cache.get(
+          this.FCM_TOKEN_KEY(userId),
+        )) as string;
+        return token;
+      }),
+    );
+    return tokens.filter((token): token is string => !!token);
   }
 }

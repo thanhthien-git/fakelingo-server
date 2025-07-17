@@ -5,6 +5,7 @@ import { IUserRequest } from 'fakelingo-token';
 import { UpdateFcmTokenDto } from './dtos/update-fcm-token';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { NotificationPayloadDto } from './dtos/send-notification-payload';
+import { SendMatchedNotiDto } from './dtos/matched-notification.dto';
 
 @Controller('notifications')
 export class NotificationController {
@@ -12,8 +13,12 @@ export class NotificationController {
 
   @EventPattern('notification_message')
   async handleMessageSent(@Payload() data: NotificationPayloadDto) {
-    console.log('📩 Nhận sự kiện message_sent:', data);
     await this.notificationService.sendNotification(data)
+  }
+
+  @EventPattern('notification_matched')
+  async sendMatchedNotification(@Payload() data: SendMatchedNotiDto) {
+    await this.notificationService.sendMatchedNotification(data)
   }
 
   @Get('get')

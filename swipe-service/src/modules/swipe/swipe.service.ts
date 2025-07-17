@@ -1,5 +1,11 @@
 import { CacheService } from '@fakelingo/cache-lib';
-import { BadGatewayException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { RedisClientType } from '@redis/client';
 import { Model, Types } from 'mongoose';
 import { ISwipe, Swipe, SwipeType } from 'src/schema/swipe.schema';
@@ -7,39 +13,44 @@ import { SwipeDto, SwipePayloadDto } from './dto/swipe-dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientProxy } from '@nestjs/microservices';
 import { MatchedDto } from './dto/matched.dto';
+import { NotificationPayloadDto } from './dto/send-notification-payload';
+import { MatchDto } from './dto/match.dto';
 
 @Injectable()
-export class SwipeService {
+export class SwipeService implements OnModuleInit {
   private cache: RedisClientType;
   private readonly FEED_KEY = (userId: string) => `feeds:userId:${userId}`;
   private readonly MATCH_KEY = (userId: string) => `match:${userId}`;
   private readonly SWIPE_KEY = (userId: string) => `swipe:left:${userId}`;
   private readonly EXPIRE_TIME = 3600;
-
   private readonly MATCH_SERVICE = process.env.MATCH_SERVICE;
 
   constructor(
     @InjectModel(Swipe.name) private swipeModel: Model<Swipe>,
     private cacheService: CacheService,
-    @Inject('NOTIFICATION_SERVICE_CLIENT')
+    @Inject('NOTIFICATION_QUEUE')
     private readonly notificationProxy: ClientProxy,
-
-    @Inject('MATCH_SERVICE_CLIENT')
+    @Inject('MATCH_QUEUE')
     private readonly matchProxy: ClientProxy,
   ) {
     this.cache = cacheService.getClient();
   }
 
+  async onModuleInit() {
+    await this.matchProxy.emit('pong', {}).toPromise();
+  }
+
   private async createSwipe(swipe: ISwipe) {
     try {
       const { sendFromId, targetUserId } = swipe;
+
       const isExist: Swipe = await this.swipeModel.findOne({
         sendFromId: sendFromId,
         targetUserId: targetUserId,
       });
 
       if (isExist) {
-        return isExist;
+        return { message: 'Bạn đã được ghép đôi với người này rồi' };
       }
 
       const newSwipe = await this.swipeModel.create(swipe);
@@ -52,15 +63,17 @@ export class SwipeService {
       const isMatched = !!reverseSwipe;
 
       if (isMatched) {
-        //logic for creating a match
-        const matchDto: MatchedDto = {
-          fromUser: String(swipe.sendFromId),
-          toUser: String(swipe.targetUserId),
+
+        const users: MatchDto = {
+          swiper: sendFromId.toString(),
+          target: targetUserId.toString(),
         };
+        this.matchProxy.emit('match.create', users);
 
-        await this.matchProxy.emit('user.matched', matchDto);
-        await this.notificationProxy.emit('user.matched ', matchDto);
-
+        this.notificationProxy.emit('notification_matched', {
+          firstUser: sendFromId.toString(),
+          secondUser: targetUserId.toString(),
+        });
         return newSwipe;
       }
     } catch (err) {
@@ -73,12 +86,6 @@ export class SwipeService {
   async handleSwipe(userId: string, dto: SwipeDto) {
     try {
       const { type, targetUserId } = dto;
-      await this.createSwipe({
-        _id: new Types.ObjectId(),
-        sendFromId: new Types.ObjectId(userId),
-        targetUserId: dto.targetUserId,
-        type: dto.type,
-      });
 
       const payload: SwipePayloadDto = {
         type: 'LIKE',
@@ -109,12 +116,24 @@ export class SwipeService {
   }
 
   private async handleSwipeRight(payload: SwipePayloadDto) {
-    const data = {
-      ...payload,
-      timestamp: new Date().toISOString(),
+    const { sendFromUser, targetUser } = payload;
+
+    await this.createSwipe({
+      sendFromId: new Types.ObjectId(sendFromUser),
+      targetUserId: new Types.ObjectId(targetUser),
+      type: SwipeType.R,
+      _id: new Types.ObjectId(),
+    });
+
+    const data: NotificationPayloadDto = {
+      type: 'like',
+      fromUserId: sendFromUser,
+      userId: targetUser,
+      body: '',
+      title: '',
     };
 
-    await this.notificationProxy.emit('notification_queue', data).toPromise();
+    await this.notificationProxy.emit('notification_message', data).toPromise();
   }
 
   async getUnreadSwipe(userId: string, page = 1, limit = 10) {

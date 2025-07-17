@@ -140,7 +140,6 @@ export class UserService {
         updateFields[`${fieldName}.${key}`] = value;
       }
     }
-
     return updateFields;
   }
 
@@ -149,6 +148,8 @@ export class UserService {
       const { profile, userId } = dto;
       const cacheKey = this.cacheKey(userId);
       const updateFields = this.getUpdateField(profile, 'profile');
+      console.log(updateFields);
+      
       await this.userModel.updateOne(
         { _id: new Types.ObjectId(userId) },
         { $set: updateFields },
@@ -204,7 +205,7 @@ export class UserService {
           _id: new Types.ObjectId(userId),
         },
         {
-          $set: { 'profile.photos': urls },
+          $set: { 'profile.photos': urls.data },
         },
       );
     } catch (err) {

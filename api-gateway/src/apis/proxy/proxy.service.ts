@@ -1,9 +1,10 @@
 import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { CONFIG } from 'src/config/config';
+import * as http from 'http';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ProxyService {
@@ -42,7 +43,7 @@ export class ProxyService {
         ...headers,
       })
         .filter(([key]) => forwardableHeaders.includes(key.toLowerCase()))
-        .map(([key, value]) => [key.toLowerCase(), String(value)]), 
+        .map(([key, value]) => [key.toLowerCase(), String(value)]),
     );
 
     try {
@@ -61,5 +62,35 @@ export class ProxyService {
         err?.response?.data?.message || err?.message || 'Unknown error';
       throw new Error(`[${service}] ${message}`);
     }
+  }
+
+  async forwardStreamRequest(
+    service: keyof typeof this.SERVICE,
+    path: string,
+    req: Request,
+    res: Response,
+  ) {
+    const target = this.SERVICE[service];
+    const targetUrl = `${target}/${path}`;
+
+    const options: http.RequestOptions = {
+      method: req.method,
+      headers: {
+        ...req.headers,
+        host: new URL(target).host,
+      },
+    };
+
+    const proxyReq = http.request(targetUrl, options, (proxyRes) => {
+      res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
+      proxyRes.pipe(res);
+    });
+
+    req.pipe(proxyReq);
+
+    proxyReq.on('error', (err) => {
+      console.error(`[${service}] Proxy error:`, err);
+      res.status(502).json({ message: 'Bad Gateway' });
+    });
   }
 }

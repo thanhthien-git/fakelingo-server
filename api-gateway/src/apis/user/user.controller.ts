@@ -11,6 +11,8 @@ import {
   Inject,
   BadRequestException,
   Post,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProxyService } from '../proxy/proxy.service';
@@ -19,6 +21,7 @@ import { User } from 'src/decorators/user-request.decorator';
 import { UpdateProfileDto } from './dtos/update.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { CONFIG } from 'src/config/config';
+import { Request, Response } from 'express';
 import { UpdateFcmTokenDto } from './dtos/update-fcm-token';
 
 @Controller('user')
@@ -59,32 +62,19 @@ export class UserController {
     return this.forwardToUserService(`user/profile/${id}`, 'GET');
   }
 
-  @Patch('profile')
-  async updateProfile(
-    @User() user: IUserRequest,
-    @Body() dto: UpdateProfileDto,
-  ) {
-    dto.userId = user.userId;
+  @Patch('update')
+  async updateProfile(@User() u: IUserRequest, @Body() dto: UpdateProfileDto) {
+    dto.userId = u.userId;
     return this.forwardToUserService('user/update', 'PATCH', dto);
   }
 
-  @Patch('profile/photos')
-  @UseInterceptors(
-    FilesInterceptor('files', 10, {
-      fileFilter: (req, file, cb) => {
-        if (file.mimetype.match(/\/(jpg|jpeg|png)$/)) cb(null, true);
-        else
-          cb(new BadRequestException('Only image files are allowed!'), false);
-      },
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
-  async updatePhotos(@UploadedFiles() files: Express.Multer.File[]) {
-    return this.forwardToUserService(
+  @Patch('update-photos')
+  async updatePhotos(@Req() req: Request, @Res() res: Response) {
+    return this.proxyService.forwardStreamRequest(
+      'USER',
       'user/update-photos',
-      'PATCH',
-      { files },
-      { 'Content-Type': 'multipart/form-data' },
+      req,
+      res,
     );
   }
 

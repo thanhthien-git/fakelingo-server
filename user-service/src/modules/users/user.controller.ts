@@ -61,8 +61,7 @@ export class UserController {
   }
 
   @Patch('update')
-  async updateProfile(@User() u, dto: UpdateProfileDto) {
-    dto.userId = u.userId;
+  async updateProfile(@Body() dto: UpdateProfileDto) {
     return await this.userService.updateProfile(dto);
   }
 

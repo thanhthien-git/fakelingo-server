@@ -1,11 +1,14 @@
-import { IProfile } from "src/interfaces/user.interface";
+import { Type } from 'class-transformer';
+import { IsOptional, ValidateNested } from 'class-validator';
+import { IProfile } from 'src/interfaces/user.interface';
 
 type UpdateProfile = Omit<IProfile, 'preferences'>;
 
-export interface IUpdateProfile {
-  profile: UpdateProfile;
-}
 export class UpdateProfileDto {
+  @IsOptional()
   userId?: string;
-  profile: IUpdateProfile;
+
+  @ValidateNested()
+  @Type(() => Object)
+  profile: UpdateProfile;
 }
