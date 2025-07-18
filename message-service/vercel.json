@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "https://fakelingo-message-service.onrender.com/$1"
+    }
+  ]
+}
