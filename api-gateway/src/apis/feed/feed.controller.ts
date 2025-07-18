@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { FeedNewUserDto } from '../user/dtos/feed-new-user.dto';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('feed')
 export class FeedController {
@@ -39,6 +40,7 @@ export class FeedController {
   }
 
   @Post('get')
+  @ApiOperation({ summary: 'Feed list of users' })
   async get(@Body() dto: FeedNewUserDto) {
     return await this.forwardToFeedService('feed/get', 'POST', dto);
   }

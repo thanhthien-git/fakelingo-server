@@ -8,12 +8,16 @@ import {
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { ProxyService } from '../proxy/proxy.service';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly proxyService: ProxyService) {}
 
   @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({ status: 201, description: 'User registered successfully' })
+  @ApiResponse({ status: 502, description: 'Bad Gateway' })
   async register(@Body() dto: RegisterDto) {
     try {
       return await this.proxyService.forwardRequest(
@@ -28,6 +32,9 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Login user' })
+  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async login(@Body() dto: LoginDto) {
     try {
       return await this.proxyService.forwardRequest(
