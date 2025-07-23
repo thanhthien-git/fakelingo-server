@@ -1,10 +1,15 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RegisterDto } from 'src/modules/auth/dtos/register.dto';
 import { LoginDto } from 'src/modules/auth/dtos/login.dto';
 import { HttpService } from '@nestjs/axios';
 import { ITokenPayload, TokenService } from 'fakelingo-token';
 import { ROLE } from './enums/role.enum';
 import { IUserResponse } from './schema/user-schema';
+import { CreateSocialUserDto } from './dtos/create-social-account.dto';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +29,7 @@ export class AuthService {
       const response = await this.httpService
         .post(`${this.USER_SERVICE_ENDPOINT}/user/create`, dto)
         .toPromise();
+
       return response.data;
     } catch (err) {
       throw new BadRequestException(err);
@@ -37,18 +43,31 @@ export class AuthService {
         .toPromise();
 
       const user = response.data as IUserResponse;
-      console.log(user);
-      
       const payload: ITokenPayload = {
         role: user.role as ROLE,
         userId: String(user._id),
         userName: user.userName,
       };
+
       const token = await this.tokenService.generateToken(payload);
-      return token
+      return token;
     } catch (err) {
       console.log(err);
       throw new UnauthorizedException(err);
     }
+  }
+
+  async handleGoogleLogin(googleUser: CreateSocialUserDto) {
+    const { email } = googleUser;
+
+    if (!email) {
+      throw new BadRequestException('Google account must have an email');
+    }
+
+    const response = await this.httpService
+      .post(`${this.USER_SERVICE_ENDPOINT}/user/find-or-create`, googleUser)
+      .toPromise();
+
+    return response.data;
   }
 }
