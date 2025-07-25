@@ -19,6 +19,7 @@ import { LoginDto } from './dtos/login.dto';
 import { FeedNewUserDto } from './dtos/feed-new-user.dto';
 import { GetUserByIdsDto } from './dtos/get-by-ids.dto';
 import { UpdateFcmTokenDto } from './dtos/update-fcm-token';
+import { CreateSocialUserDto } from './dtos/create-social-account.dto';
 
 @Controller('user')
 export class UserController {
@@ -27,6 +28,11 @@ export class UserController {
   @Post('create')
   async createUser(@Body() dto: RegisterDto) {
     return await this.userService.createUser(dto);
+  }
+
+  @Post('find-or-create')
+  async findOrCreate(@Body() dto: CreateSocialUserDto) {
+    return await this.userService.findOrCreateByGoogle(dto);
   }
 
   @Post('fcm-token')

@@ -78,6 +78,10 @@ export class User {
   @Field()
   @Prop({ type: () => Profile })
   profile: Profile;
+
+  @Field()
+  @Prop({ type: String })
+  googleId?: string;
 }
 
 export type UserDocument = HydratedDocument<User>;
@@ -113,6 +117,7 @@ export interface IUser {
   role: keyof typeof ROLE;
   createAt: Date;
   lastActive?: Date;
+  googleId?: string;
   profile?: IProfile;
 }
 

@@ -13,8 +13,7 @@ This repository contains the backend services for the app, each responsible for 
 - **Notification Service**: Sends push notifications and system alerts.
 
 The architecture is illustrated in the following diagram:  
-![System Architecture](https://ibb.co/kWm8d3d)
-
+![System Architecture](diagram.png)
 ---
 
 ## Microservices Breakdown
@@ -123,16 +122,6 @@ fakelingo-server/
 ```
 
 Each folder is a standalone NestJS project with its own dependencies and configuration.
-
----
-
-## Contributing
-
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/fooBar`)
-3. Commit your changes (`git commit -am 'Add some fooBar'`)
-4. Push to the branch (`git push origin feature/fooBar`)
-5. Create a new Pull Request
 
 ---
 

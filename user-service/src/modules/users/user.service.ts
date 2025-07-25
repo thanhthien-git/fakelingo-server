@@ -21,6 +21,7 @@ import * as bcrypt from 'bcrypt';
 import { CacheService } from '@fakelingo/cache-lib';
 import { LoginDto } from './dtos/login.dto';
 import { UpdateFcmTokenDto } from './dtos/update-fcm-token';
+import { CreateSocialUserDto } from './dtos/create-social-account.dto';
 
 @Injectable()
 export class UserService {
@@ -63,26 +64,79 @@ export class UserService {
   async createUser(dto: RegisterDto): Promise<string> {
     const { email, password, userName } = dto;
     try {
-      const hashed = await this.hashedPassword(password);
-      const user: IUser = {
-        email: email,
-        _id: new Types.ObjectId(),
-        userName: userName,
-        password: hashed,
-        role: ROLE.USER,
-        createAt: new Date(),
-      };
+      const isExist = !!(await this.userModel.findOne({
+        $or: [{ email: dto.email }, { userName: userName }],
+      }));
 
-      await this.userModel.insertOne(user);
-      const tokenDto: CreateTokenDto = {
-        role: ROLE.USER,
-        userId: String(user._id),
-        userName: userName,
-      };
-      return await this.tokenService.generateToken(tokenDto);
+      if (isExist) {
+        const hashed = await this.hashedPassword(password);
+
+        const user: IUser = {
+          email: email,
+          _id: new Types.ObjectId(),
+          userName: userName,
+          password: hashed,
+          role: ROLE.USER,
+          createAt: new Date(),
+          profile: {},
+        };
+
+        await this.userModel.insertOne(user);
+
+        const tokenDto: CreateTokenDto = {
+          role: ROLE.USER,
+          userId: String(user._id),
+          userName: userName,
+        };
+
+        return await this.tokenService.generateToken(tokenDto);
+      }
+      return 'Tài khoản đã tồn tại';
     } catch (err) {
       throw new InternalServerErrorException(err);
     }
+  }
+
+  async findOrCreateByGoogle(dto: CreateSocialUserDto): Promise<string> {
+    const { email, googleId, name, avatar } = dto;
+
+    const existing = await this.userModel.findOne({
+      $or: [{ email }, { googleId }],
+    });
+
+    if (existing) {
+      const tokenDto: CreateTokenDto = {
+        role: ROLE.USER,
+        userId: String(existing._id),
+        userName: existing.userName,
+      };
+
+      return await this.tokenService.generateToken(tokenDto);
+    }
+    
+    const newUser: IUser = {
+      _id: new Types.ObjectId(),
+      email,
+      googleId,
+      userName: `user${googleId}`,
+      password: '',
+      role: ROLE.USER,
+      createAt: new Date(),
+      profile: {
+        name: name,
+        photos: [avatar],
+      },
+    };
+
+    await this.userModel.insertOne(newUser);
+
+    const tokenDto: CreateTokenDto = {
+      role: ROLE.USER,
+      userId: String(newUser._id),
+      userName: newUser.userName,
+    };
+
+    return await this.tokenService.generateToken(tokenDto);
   }
 
   async getProfileById(userId: string): Promise<IUserResponse> {
@@ -148,8 +202,7 @@ export class UserService {
       const { profile, userId } = dto;
       const cacheKey = this.cacheKey(userId);
       const updateFields = this.getUpdateField(profile, 'profile');
-      console.log(updateFields);
-      
+
       await this.userModel.updateOne(
         { _id: new Types.ObjectId(userId) },
         { $set: updateFields },
@@ -241,7 +294,7 @@ export class UserService {
 
       if (gender) {
         orConditions.push({ 'profile.gender': gender });
-        baseQuery['profile.gender'] = gender
+        baseQuery['profile.gender'] = gender;
       }
 
       if (preferences.ageRange) {
@@ -264,7 +317,7 @@ export class UserService {
               type: 'Point',
               coordinates: location.coordinates,
             },
-            $maxDistance: preferences.max_distance * 1000, 
+            $maxDistance: preferences.max_distance * 1000,
           },
         };
       }
@@ -276,11 +329,11 @@ export class UserService {
         .exec();
 
       console.log(users);
-        
+
       if (users.length === 0) {
         users = await this.userModel
           .aggregate([
-            { $match: baseQuery},
+            { $match: baseQuery },
             { $sample: { size: limit } },
             { $project: { password: 0 } },
           ])
