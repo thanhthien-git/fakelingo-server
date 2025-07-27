@@ -2,7 +2,6 @@ import { Body, Controller, Post, Req } from '@nestjs/common';
 import { FeedNewUserDto } from './dtos/get-list.dto';
 import { FeedService } from './feeds.service';
 import { User } from 'src/decorators/user-request.decorator';
-import { IUserRequest } from 'fakelingo-token';
 import { IUserReq } from 'src/interfaces/user.request';
 
 @Controller('feed')

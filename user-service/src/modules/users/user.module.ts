@@ -4,6 +4,7 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { User, UserSchema } from './schema/user-schema';
 import { TokenModule } from '../token/token.module';
+import { CacheModule } from '@fakelingo/cache-lib';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { TokenModule } from '../token/token.module';
       },
     ]),
     TokenModule,
+    CacheModule
   ],
   controllers: [UserController],
   providers: [UserService],

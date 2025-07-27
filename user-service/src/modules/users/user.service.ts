@@ -18,21 +18,24 @@ import axios from 'axios';
 import { FeedNewUserDto } from './dtos/feed-new-user.dto';
 import * as FormData from 'form-data';
 import * as bcrypt from 'bcrypt';
-import { CacheService } from '@fakelingo/cache-lib';
 import { LoginDto } from './dtos/login.dto';
 import { UpdateFcmTokenDto } from './dtos/update-fcm-token';
 import { CreateSocialUserDto } from './dtos/create-social-account.dto';
-
+import { CacheService } from '@fakelingo/cache-lib';
+import { RedisClientType } from 'redis';
 @Injectable()
 export class UserService {
   private readonly storage = process.env.CLOUDINARY_API;
   private cacheKey = (id: string) => `user:profile:${id}`;
+  private cache: RedisClientType;
 
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private cachingService: CacheService,
     private tokenService: TokenService,
-  ) {}
+  ) {
+    this.cache = cachingService.getClient();
+  }
 
   private async comparePassword(password: string, hashedPassword: string) {
     return await bcrypt.compare(password, hashedPassword);
@@ -113,7 +116,7 @@ export class UserService {
 
       return await this.tokenService.generateToken(tokenDto);
     }
-    
+
     const newUser: IUser = {
       _id: new Types.ObjectId(),
       email,
@@ -285,8 +288,14 @@ export class UserService {
       const { condition } = dto;
       const { location, preferences, gender } = condition;
 
+      const leftSwipedIds = await this.cache.sMembers(`swipe:left:${userId}`);
+      const excludedUserIds = leftSwipedIds.map((id) => new Types.ObjectId(id));
+
       const baseQuery: any = {
-        _id: { $ne: new Types.ObjectId(userId) },
+        _id: {
+          $ne: new Types.ObjectId(userId),
+          $nin: excludedUserIds,
+        },
       };
 
       const query: any = { ...baseQuery };
@@ -328,16 +337,14 @@ export class UserService {
         .select('-password')
         .exec();
 
-      console.log(users);
-
       if (users.length === 0) {
-        users = await this.userModel
-          .aggregate([
-            { $match: baseQuery },
-            { $sample: { size: limit } },
-            { $project: { password: 0 } },
-          ])
-          .exec();
+        const aggregateQuery: any[] = [
+          { $match: baseQuery },
+          { $sample: { size: limit } },
+          { $project: { password: 0 } },
+        ];
+
+        users = await this.userModel.aggregate(aggregateQuery).exec();
       }
 
       return users;
