@@ -14,7 +14,7 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
-   const config = new DocumentBuilder()
+  const config = new DocumentBuilder()
     .setTitle('Fakelingo API')
     .setDescription('The Fakelingo API description')
     .setVersion('1.0')
@@ -24,5 +24,9 @@ async function bootstrap() {
   await app.listen(8080, () => {
     console.log(`api gateway is running on port : 8080`);
   });
+
+  // await app.listen(8080, '0.0.0.0', () => {
+  //   console.log(`API Gateway is running on http://0.0.0.0:8080`);
+  // });
 }
 bootstrap();

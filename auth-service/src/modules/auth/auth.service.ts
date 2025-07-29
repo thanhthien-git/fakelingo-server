@@ -68,6 +68,9 @@ export class AuthService {
       .post(`${this.USER_SERVICE_ENDPOINT}/user/find-or-create`, googleUser)
       .toPromise();
 
+      console.log(response.data);
+      
+
     return response.data;
   }
 }

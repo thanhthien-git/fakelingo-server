@@ -58,8 +58,21 @@ export class AuthController {
     return res.redirect(`${CONFIG.AUTH_SERVICE.url}/auth/google`);
   }
 
+  @Post('google/mobile')
+  async googleMobile(@Body() body) {
+    return this.proxyService.forwardRequest(
+      'AUTH',
+      'auth/google/mobile',
+      'POST',
+      body,
+    );
+  }
+
   @Get('google/callback')
-  handleGoogleRedirect(@Query('token') token: string) {
-    return token;
+  async handleGoogleRedirect(
+    @Query('token') token: string,
+    @Res() res: Response,
+  ) {
+    return res.redirect(`fakelingo://callback?token=${token}`);
   }
 }
